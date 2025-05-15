@@ -26,29 +26,39 @@ USER_ID = "user_activities"
 SESSION_ID = "session_activities"
 
 async def execute(request):
+    # Extract A2A input
+    input_data = request.get("input", {})
+    user_id = request.get("user_id", USER_ID)
+    session_id = request.get("session_id", SESSION_ID)
     session_service.create_session(
         app_name="activities_app",
-        user_id=USER_ID,
-        session_id=SESSION_ID
+        user_id=user_id,
+        session_id=session_id
     )
     prompt = (
-        f"User is flying to {request['destination']} from {request['start_date']} to {request['end_date']}, "
-        f"with a budget of {request['budget']}. Suggest 2-3 activities, each with name, description, price estimate, and duration. "
+        f"User is flying to {input_data.get('destination')} from {input_data.get('start_date')} to {input_data.get('end_date')}, "
+        f"with a budget of {input_data.get('budget')}. Suggest 2-3 activities, each with name, description, price estimate, and duration. "
         f"Respond in JSON format using the key 'activities' with a list of activity objects."
     )
     message = types.Content(role="user", parts=[types.Part(text=prompt)])
-    async for event in runner.run_async(user_id=USER_ID, session_id=SESSION_ID, new_message=message):
+    async for event in runner.run_async(user_id=user_id, session_id=session_id, new_message=message):
+        print(f"I am inside activities_agent........")
         if event.is_final_response():
-            print(f"Inside activities_agent execute..............")
             response_text = event.content.parts[0].text
             try:
                 parsed = json.loads(response_text)
                 if "activities" in parsed and isinstance(parsed["activities"], list):
-                    return {"activities": parsed["activities"]}
+                    return {
+                        "output": {"activities": parsed["activities"]},
+                        "status": "success"
+                    }
                 else:
-                    print("'activities' key missing or not a list in response JSON")
-                    return {"activities": response_text}  # fallback to raw text
-            except json.JSONDecodeError as e:
-                print("JSON parsing failed:", e)
-                print("Response content:", response_text)
-                return {"activities": response_text}  # fallback to raw text
+                    return {
+                        "output": {"activities": response_text},
+                        "status": "error"
+                    }
+            except json.JSONDecodeError:
+                return {
+                    "output": {"activities": response_text},
+                    "status": "error"
+                }

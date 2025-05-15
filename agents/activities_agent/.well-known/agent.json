@@ -1,4 +1,13 @@
 {
-    "name": "activity_agent",
-    "description": "Agent providing activity details."
+  "name": "activities_agent",
+  "description": "Agent suggesting activities for a destination, date, and budget. Returns a list of engaging tourist or cultural activities.",
+  "version": "1.0.0",
+  "maintainer": "your-email@example.com",
+  "endpoints": {
+    "run": {
+      "url": "/run",
+      "method": "POST",
+      "description": "Suggests activities for the given destination, date, and budget."
+    }
   }
+}

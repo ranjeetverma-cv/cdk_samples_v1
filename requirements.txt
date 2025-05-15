@@ -1,0 +1,5 @@
+streamlit
+uvicorn
+python-dotenv
+requests
+# Add your other dependencies below

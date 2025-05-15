@@ -28,6 +28,8 @@ if st.button("Plan My Trip ✨"):
         response = requests.post("http://localhost:8000/run", json=payload)
         if response.ok:
             data = response.json()
+            print("Parsed response data:")
+            print(data)
             st.subheader("✈️ Flights")
             st.markdown(data["flights"])
             st.subheader("🏨 Stays")

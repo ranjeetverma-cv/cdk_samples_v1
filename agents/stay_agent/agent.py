@@ -33,30 +33,40 @@ USER_ID = "user_stay"
 SESSION_ID = "session_stay"
 
 async def execute(request):
+    # Extract A2A input
+    input_data = request.get("input", {})
+    user_id = request.get("user_id", USER_ID)
+    session_id = request.get("session_id", SESSION_ID)
     session_service.create_session(
         app_name="stay_app",
-        user_id=USER_ID,
-        session_id=SESSION_ID
+        user_id=user_id,
+        session_id=session_id
     )
     prompt = (
-        f"User is looking for accommodation in {request['destination']} from {request['start_date']} to {request['end_date']}, "
-        f"with a budget of {request['budget']}. Suggest 2-3 options, each with name, description, price per night, and location. "
+        f"User is looking for accommodation in {input_data.get('destination')} from {input_data.get('start_date')} to {input_data.get('end_date')}, "
+        f"with a budget of {input_data.get('budget')}. Suggest 2-3 options, each with name, description, price per night, and location. "
         f"Respond in JSON format using the key 'stays' with a list of stay objects."
     )
     message = types.Content(role="user", parts=[types.Part(text=prompt)])
-    async for event in runner.run_async(user_id=USER_ID, session_id=SESSION_ID, new_message=message):
+    async for event in runner.run_async(user_id=user_id, session_id=session_id, new_message=message):
+        print(f"I am inside stay_agent........")
         if event.is_final_response():
-            print(f"Inside stay_agent execute..............")
             response_text = event.content.parts[0].text
-            print(f"Stay_agent Response text: {response_text}...")
             cleaned = strip_triple_backticks(response_text)
-            print(f"Stay_agent Cleaned response: {cleaned}...")
             try:
                 parsed = json.loads(cleaned)
                 if "stays" in parsed and isinstance(parsed["stays"], list):
-                    return {"stays": parsed["stays"]}
+                    return {
+                        "output": {"stays": parsed["stays"]},
+                        "status": "success"
+                    }
                 else:
-                    print("'stays' key missing or not a list in response JSON")
-                    return {"stays": response_text}  # fallback to raw text
-            except json.JSONDecodeError as e:
-                print("JSON parsing failed:", e)
+                    return {
+                        "output": {"stays": response_text},
+                        "status": "error"
+                    }
+            except json.JSONDecodeError:
+                return {
+                    "output": {"stays": response_text},
+                    "status": "error"
+                }

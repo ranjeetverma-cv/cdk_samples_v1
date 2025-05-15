@@ -5,8 +5,11 @@ load_dotenv()
 api_key = os.getenv("OPENAI_API_KEY")
 
 from common.a2a_server import create_app
-from .task_manager import run
-app = create_app(agent=type("Agent", (), {"execute": run}))
+from .agent import execute
+# from .task_manager import run
+# app = create_app(agent=type("Agent", (), {"execute": run}))
+
+app = create_app(agent=type("Agent", (), {"execute": execute}))
 if __name__ == "__main__":
     import uvicorn
-    uvicorn.run(app, port=8005)
+    uvicorn.run(app, port=8000)

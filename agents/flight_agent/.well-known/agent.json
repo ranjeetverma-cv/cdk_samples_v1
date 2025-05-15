@@ -1,4 +1,13 @@
 {
-    "name": "flight_agent",
-    "description": "Agent providing flight search and recommendation services. Finds suitable flights for a given route, date, and budget."
+  "name": "flight_agent",
+  "description": "Agent providing flight search and recommendation services. Finds suitable flights for a given route, date, and budget.",
+  "version": "1.0.0",
+  "maintainer": "your-email@example.com",
+  "endpoints": {
+    "run": {
+      "url": "/run",
+      "method": "POST",
+      "description": "Finds suitable flights for the given route, date, and budget."
+    }
+  }
 }

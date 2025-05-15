@@ -44,4 +44,41 @@ node_modules/
 *.tmp
 
 # Ignore well-known agent configs
-agents/*/.well-known/
+# agents/*/.well-known/
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+
+__pycache__/
+*.py[cod]
+*$py.class
+ 
+# Virtual environment
+venv/
+.env/
+.venv/
+env/
+ENV/
+ 
+# VSCode / IDE settings
+.vscode/
+.idea/
+ 
+# macOS / Linux / Windows system files
+.DS_Store
+Thumbs.db
+ 
+# Python specific
+*.log
+*.pot
+*.pyc
+*.pyo
+*.pyd
+ 
+# Environment variables / secrets
+*.env
+ 
+# Jupyter notebooks
+.ipynb_checkpoints

@@ -18,22 +18,77 @@ runner = Runner(
     session_service=session_service
 )
 
+import httpx
+import asyncio
+import requests
+
 USER_ID = "user_host"
 SESSION_ID = "session_host"
 
+# Helper to discover agent endpoint from .well-known/agent.json
+def load_agent_endpoint(agent_base_url):
+    resp = requests.get(f"{agent_base_url}/.well-known/agent.json")
+    agent_info = resp.json()
+    run_info = agent_info["endpoints"]["run"]
+    return agent_base_url + run_info["url"]
+
+# Discover endpoints at startup
+def discover_agents():
+    agents = {}
+    for name, base_url in {
+        "flights": "http://localhost:8001",
+        "stays": "http://localhost:8002",
+        "activities": "http://localhost:8003"
+    }.items():
+        try:
+            agents[name] = load_agent_endpoint(base_url)
+        except Exception as e:
+            print(f"Failed to discover {name} agent: {e}")
+    return agents
+
+AGENT_ENDPOINTS = discover_agents()
+
+async def call_agent(url, payload):
+    try:
+        async with httpx.AsyncClient(timeout=60) as client:  # Increased timeout
+            response = await client.post(url, json=payload)
+            response.raise_for_status()
+            return response.json()
+    except httpx.ReadTimeout:
+        print(f"Timeout when calling {url}")
+        return {"error": f"Timeout when calling {url}"}
+    except httpx.HTTPStatusError as e:
+        print(f"HTTP error from {url}: {e}")
+        return {"error": f"HTTP error from {url}: {e}"}
+    except Exception as e:
+        print(f"Unexpected error calling {url}: {e}")
+        return {"error": f"Unexpected error calling {url}: {e}"}
+
 async def execute(request):
-    # Ensure session exists
     session_service.create_session(
         app_name="host_app",
         user_id=USER_ID,
         session_id=SESSION_ID
     )
-    prompt = (
-        f"Plan a trip to {request['destination']} from {request['start_date']} to {request['end_date']} "
-        f"within a total budget of {request['budget']}. Call the flights, stays, and activities agents for results."
-    )
-    message = types.Content(role="user", parts=[types.Part(text=prompt)])
-    async for event in runner.run_async(user_id=USER_ID, session_id=SESSION_ID, new_message=message):
-        if event.is_final_response():
-            print(f"Inside host_agent execute..............")
-            return {"summary": event.content.parts[0].text}
+    # Compose A2A-compliant payload
+    a2a_payload = {
+        "input": request,
+        "user_id": USER_ID,
+        "session_id": SESSION_ID
+    }
+    # Call sub-agents in parallel using discovered endpoints
+    flights_task = call_agent(AGENT_ENDPOINTS["flights"], a2a_payload)
+    stay_task = call_agent(AGENT_ENDPOINTS["stays"], a2a_payload)
+    activities_task = call_agent(AGENT_ENDPOINTS["activities"], a2a_payload)
+    flights, stay, activities = await asyncio.gather(flights_task, stay_task, activities_task)
+
+    # Extract results according to A2A schema
+    flights_result = flights.get("output", {}).get("flights", "No flights returned.")
+    stay_result = stay.get("output", {}).get("stays", "No stay options returned.")
+    activities_result = activities.get("output", {}).get("activities", "No activities found.")
+
+    return {
+        "flights": flights_result,
+        "stay": stay_result,
+        "activities": activities_result
+    }

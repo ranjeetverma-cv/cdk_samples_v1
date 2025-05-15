@@ -33,31 +33,39 @@ USER_ID = "user_flight"
 SESSION_ID = "session_flight"
 
 async def execute(request):
+    # Extract A2A input
+    input_data = request.get("input", {})
+    user_id = request.get("user_id", USER_ID)
+    session_id = request.get("session_id", SESSION_ID)
     session_service.create_session(
         app_name="flight_app",
-        user_id=USER_ID,
-        session_id=SESSION_ID
+        user_id=user_id,
+        session_id=session_id
     )
     prompt = (
-        f"User wants to fly from {request['origin']} to {request['destination']} "
-        f"between {request['start_date']} and {request['end_date']} with a budget of {request['budget']}. "
-        "Suggest 2-3 flight options, each with airline name, flight number, departure and arrival times, price estimate, and duration. "
-        "Respond in JSON format using the key 'flights' with a list of flight objects."
+        f"User wants to find flights to {input_data.get('destination')} from {input_data.get('origin')} between {input_data.get('start_date')} and {input_data.get('end_date')} within a budget of {input_data.get('budget')}. "
+        f"Suggest 2-3 flight options, each with airline, departure time, arrival time, and price. Respond in JSON with key 'flights' as a list of flight objects."
     )
     message = types.Content(role="user", parts=[types.Part(text=prompt)])
-    async for event in runner.run_async(user_id=USER_ID, session_id=SESSION_ID, new_message=message):
+    async for event in runner.run_async(user_id=user_id, session_id=session_id, new_message=message):
+        print(f"I am inside flight_agent... ")
         if event.is_final_response():
-            print(f"Inside flight_agent execute..............")
             response_text = event.content.parts[0].text
-            print(f"flight_agent Response text: {response_text}...")
             cleaned = strip_triple_backticks(response_text)
-            print(f"flight_agent Cleaned response: {cleaned}...")
             try:
                 parsed = json.loads(cleaned)
                 if "flights" in parsed and isinstance(parsed["flights"], list):
-                    return {"flights": parsed["flights"]}
+                    return {
+                        "output": {"flights": parsed["flights"]},
+                        "status": "success"
+                    }
                 else:
-                    print("'flights' key missing or not a list in response JSON")
-                    return {"flights": response_text}  # fallback to raw text
-            except json.JSONDecodeError as e:
-                print("JSON parsing failed:", e)
+                    return {
+                        "output": {"flights": response_text},
+                        "status": "error"
+                    }
+            except json.JSONDecodeError:
+                return {
+                    "output": {"flights": response_text},
+                    "status": "error"
+                }

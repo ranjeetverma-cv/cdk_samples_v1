@@ -1,0 +1,13 @@
+{
+  "name": "stay_agent",
+  "description": "Agent providing hotel/lodging search and recommendation services. Finds suitable stays for a given destination, date, and budget.",
+  "version": "1.0.0",
+  "maintainer": "your-email@example.com",
+  "endpoints": {
+    "run": {
+      "url": "/run",
+      "method": "POST",
+      "description": "Finds suitable stays for the given destination, date, and budget."
+    }
+  }
+}

@@ -1,0 +1,12 @@
+# Patch for .well-known static file serving in FastAPI
+# Add this to your __main__.py if using FastAPI or compatible ASGI framework
+
+from fastapi.staticfiles import StaticFiles
+import os
+
+# Mount the .well-known directory at the root
+if os.path.isdir(".well-known"):
+    app.mount("/.well-known", StaticFiles(directory=".well-known"), name="well-known")
+
+# Place this after your app = create_app(...) line
+# If using Flask or another framework, ask for the appropriate patch
