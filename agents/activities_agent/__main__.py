@@ -8,6 +8,10 @@ from common.a2a_server import create_app
 from .task_manager import run
 app = create_app(agent=type("Agent", (), {"execute": run}))
 
+@app.get("/")
+async def root():
+    return {"status": "ok", "service": "activities-agent"}
+
 # Mount .well-known for agent discovery (A2A)
 try:
     from fastapi.staticfiles import StaticFiles

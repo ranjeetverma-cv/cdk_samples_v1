@@ -35,10 +35,24 @@ def load_agent_endpoint(agent_base_url):
 # Discover endpoints at startup
 def discover_agents():
     agents = {}
+
+    import os
+    
+    # Default to localhost for local development
+    flight_host = os.environ.get("FLIGHT_AGENT_URL", "http://localhost:8001")
+    stay_host = os.environ.get("STAY_AGENT_URL", "http://localhost:8002")
+    activities_host = os.environ.get("ACTIVITIES_AGENT_URL", "http://localhost:8003")
+    
+    # In Docker, use service names instead of localhost
+    if os.environ.get("IN_DOCKER", "") == "true":
+        flight_host = "http://flight-agent:8001"
+        stay_host = "http://stay-agent:8002"
+        activities_host = "http://activities-agent:8003"
+
     for name, base_url in {
-        "flights": "http://localhost:8001",
-        "stays": "http://localhost:8002",
-        "activities": "http://localhost:8003"
+        "flights": flight_host,
+        "stays": stay_host,
+        "activities": activities_host
     }.items():
         try:
             agents[name] = load_agent_endpoint(base_url)

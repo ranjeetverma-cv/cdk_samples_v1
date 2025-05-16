@@ -25,7 +25,9 @@ if st.button("Plan My Trip ✨"):
             "end_date": str(end_date),
             "budget": budget
         }
-        response = requests.post("http://localhost:8000/run", json=payload)
+        host_url = os.environ.get("HOST_AGENT_URL", "http://localhost:8000")
+
+        response = requests.post(f"{host_url}/run", json=payload)
         if response.ok:
             data = response.json()
             print("Parsed response data:")

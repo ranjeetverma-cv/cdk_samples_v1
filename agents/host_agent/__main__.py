@@ -10,6 +10,10 @@ from .agent import execute
 # app = create_app(agent=type("Agent", (), {"execute": run}))
 
 app = create_app(agent=type("Agent", (), {"execute": execute}))
+# Add a root endpoint for health checks
+@app.get("/")
+async def root():
+    return {"status": "ok", "service": "host-agent"}
 if __name__ == "__main__":
     import uvicorn
     uvicorn.run(app, port=8000)
