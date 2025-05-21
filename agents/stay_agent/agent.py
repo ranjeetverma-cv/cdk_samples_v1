@@ -43,8 +43,8 @@ async def execute(request):
         session_id=session_id
     )
     prompt = (
-        f"User is looking for accommodation in {input_data.get('destination')} from {input_data.get('start_date')} to {input_data.get('end_date')}, "
-        f"with a budget of {input_data.get('budget')}. Suggest 2-3 options, each with name, description, price per night, and location. "
+        f"{input_data.get("query")}."
+        f"Suggest 2-3 options, each with name, description, price per night, and location. "
         f"Respond in JSON format using the key 'stays' with a list of stay objects."
     )
     message = types.Content(role="user", parts=[types.Part(text=prompt)])

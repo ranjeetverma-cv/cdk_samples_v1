@@ -5,6 +5,8 @@ from google.adk.sessions import InMemorySessionService
 from google.genai import types
 import json
 import re
+# from dotenv import load_dotenv
+# load_dotenv()
 
 def strip_triple_backticks(text):
     match = re.search(r"```(?:json)?\s*(.*?)\s*```", text, re.DOTALL)
@@ -43,7 +45,7 @@ async def execute(request):
         session_id=session_id
     )
     prompt = (
-        f"User wants to find flights to {input_data.get('destination')} from {input_data.get('origin')} between {input_data.get('start_date')} and {input_data.get('end_date')} within a budget of {input_data.get('budget')}. "
+        f"{input_data.get("query")}."
         f"Suggest 2-3 flight options, each with airline, departure time, arrival time, and price. Respond in JSON with key 'flights' as a list of flight objects."
     )
     message = types.Content(role="user", parts=[types.Part(text=prompt)])
