@@ -5,8 +5,6 @@ from google.adk.sessions import InMemorySessionService
 from google.genai import types
 import json
 import re
-# from dotenv import load_dotenv
-# load_dotenv()
 
 def strip_triple_backticks(text):
     match = re.search(r"```(?:json)?\s*(.*?)\s*```", text, re.DOTALL)
