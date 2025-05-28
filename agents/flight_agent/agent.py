@@ -1,4 +1,5 @@
 from google.adk.agents import Agent
+from google.adk.agents import LlmAgent
 from google.adk.models.lite_llm import LiteLlm
 from google.adk.runners import Runner
 from google.adk.sessions import InMemorySessionService
@@ -75,7 +76,7 @@ def strip_triple_backticks(text):
     return text
 
 # --- Subagent definitions as referenced in the orchestration prompt ---
-flight_search_agent = Agent(
+flight_search_agent = LlmAgent(
     name="flight_search_agent",
     model=LiteLlm("openai/gpt-4o"),
     description="Searches and lists flight options based on user input.",
@@ -150,7 +151,7 @@ flight_search_agent = Agent(
 
 
 
-price_analysis_agent = Agent(
+price_analysis_agent = LlmAgent(
     name="price_analysis_agent",
     model=LiteLlm("openai/gpt-4o"),  # or your preferred model like "chat-bison"
     description="Analyzes flight prices and suggests better travel dates or tips for savings.",
@@ -176,7 +177,7 @@ price_analysis_agent = Agent(
     output_key=STATE_PRICE_ANALYSIS_RESULT,
 )
 
-flight_comparison_agent = Agent(
+flight_comparison_agent = LlmAgent(
     name="flight_comparison_agent",
     model=LiteLlm("openai/gpt-4o"),  # You can also use "chat-bison" or another model
     description="Compares available flights based on duration, layovers, cost, and airline rating.",
@@ -213,7 +214,7 @@ flight_comparison_agent = Agent(
 )
 
 
-flight_agent = Agent(
+flight_agent = LlmAgent(
     name="flight_agent",
     model=LiteLlm("openai/gpt-4o"),
     description="Flight orchestration agent.",
